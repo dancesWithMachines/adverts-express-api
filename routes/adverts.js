@@ -1,7 +1,8 @@
 const express = require("express")
 const mongoose = require("mongoose")
 const Advert = require("../models/Advert")
-const checkAuth = require("../middleware/AuthChecker")
+const checkAuth = require("../middleware/AuthCheck")
+const authInfo = require("../middleware/AuthInfo")
 const router = express.Router()
 const multer = require("multer")
 
@@ -46,7 +47,10 @@ router.get("/user/:owner", (req, res) => {
     console.log("\x1b[34m", req.params.owner)
     Advert.find({owner: req.params.owner})
         .then(result => {
-            res.status(200).json(result)
+            if (!result)
+                res.status(200).json(result)
+            else
+                res.status(404).json({message: "Did not find any adverts"})
         })
         .catch( err => {
             res.status(204).json({message: err})
@@ -68,6 +72,8 @@ router.get("/:id", (req, res) => {
             console.log("\x1b[41m",err)
         })
 })
+
+//Adds advert
 router.post("/", checkAuth, (req,res) => {
     const advert = new Advert({
         _id: new mongoose.Types.ObjectId,
@@ -76,7 +82,7 @@ router.post("/", checkAuth, (req,res) => {
         description: req.body.description,
         imageUrl: req.body.imageUrl
     })
-
+    
     advert.save()
         .then(data => {
             res.status(201).json(data)
@@ -114,10 +120,13 @@ router.delete("/:id", checkAuth, (req, res) =>{
     const id = req.params.id
     Advert.findByIdAndDelete(id)
         .then(response => {
-            res.status(200).json({
-                message: "Product id " + id + " removed succesfully",
-                info: response
-            })
+            if (response != null)
+                res.status(200).json({
+                    message: "Product id " + id + " removed succesfully",
+                    info: response
+                })
+            else
+                res.status(404).json({message: "No such product"})
         })
         .catch( (err) =>{
             res.status(500).json({message: err})

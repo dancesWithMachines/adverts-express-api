@@ -3,7 +3,8 @@ const router = express.Router();
 const mongoose = require("mongoose")
 const bcrypt = require("bcrypt")
 const jwt = require("jsonwebtoken");
-const checkAuth = require("../middleware/AuthChecker")
+const checkAuth = require("../middleware/AuthCheck")
+const authInfo = require("../middleware/AuthInfo")
 
 const User = require("../models/User")
 
@@ -31,19 +32,31 @@ router.post("/register", (req, res) => {
 })
 
 router.delete("/:id", checkAuth, (req, res) => {
+    console.log(req.decoded.email + " in delete")
     const id = req.params.id
-    console.log('\x1b[33m%s\x1b[0m',"USR_ID: " + id)
-    User.findByIdAndRemove(req.params.id)
-        .then(result => {     
-            if (result != null)      
-                res.status(200).json({message: "User deleted", info: result})
-            else
+    User.findById(id)
+        .then(result => {
+            if (result != null){
+                if (req.decoded.email == result.email){
+                    User.findByIdAndRemove(id)
+                        .then(result => {     
+                            if (result != null)      
+                                res.status(200).json({message: "User deleted", info: result})            
+                        })
+                        .catch( (err) => {
+                            res.status(500).json({error: err})
+                            console.log("\x1b[31m",err)
+                        })
+                } else
+                    res.status(403).json({message: "Unauthenticated"})
+            } else
                 res.status(404).json({message: "User not found"})
         })
         .catch( (err) => {
             res.status(500).json({error: err})
             console.log("\x1b[31m",err)
         })
+    
 })
 
 router.post("/login", (req, res) => {

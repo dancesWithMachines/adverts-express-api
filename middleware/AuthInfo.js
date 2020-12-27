@@ -1,12 +1,13 @@
 const jwt = require("jsonwebtoken");
 
-module.exports = (req, res, next) => {
+const token = (req) => {
     try {
         const token = req.headers.authorization.split(" ")
         const decoded = jwt.verify(token[1], process.env.passwdJWT)
-        next();
+        return token
     } catch (err) {
-        res.status(401).json({message: "Autrhorization error"})
+        return null
     }
-    
 }
+
+module.exports = token
