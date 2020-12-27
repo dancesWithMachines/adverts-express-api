@@ -24,7 +24,7 @@ router.post("/register", (req, res) => {
                 })
                 .catch( err => {
                     res.status(500).json({error: err})
-                    console.log(err)
+                    console.log("\x1b[31m",err)
                 })
         }
     })
@@ -42,7 +42,7 @@ router.delete("/:id", checkAuth, (req, res) => {
         })
         .catch( (err) => {
             res.status(500).json({error: err})
-            console.log(err)
+            console.log("\x1b[31m",err)
         })
 })
 
@@ -73,14 +73,14 @@ router.post("/login", (req, res) => {
                 })
                 .catch( (err) => {
                     res.status(500).json({error: err})
-                    console.log(err)
+                    console.log("\x1b[31m",err)
                 })
 
             //res.status(200).json(user)
         })
         .catch( (err) => {
             res.status(500).json({error: err})
-            console.log(err)
+            console.log("\x1b[31m",err)
         })
 })
 module.exports = router

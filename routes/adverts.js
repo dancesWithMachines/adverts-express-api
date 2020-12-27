@@ -28,6 +28,7 @@ const upload = multer({storage: storage, limits: {fileSize: 1024 * 1024 * 5}, fi
 
 // Routing
 
+//Returns all adverts
 router.get("/", (req,res) => {
     Advert.find()
         .then(result => {
@@ -39,14 +40,32 @@ router.get("/", (req,res) => {
         })
 })
 
-router.get("/:id", (req, res) => {
-    Advert.findById(req.params.id)
+
+//Returns user's adverts
+router.get("/user/:owner", (req, res) => {
+    console.log("\x1b[34m", req.params.owner)
+    Advert.find({owner: req.params.owner})
         .then(result => {
             res.status(200).json(result)
         })
         .catch( err => {
-            res.status(404).json({message: err})
+            res.status(204).json({message: err})
             console.log(err)
+        })
+})
+
+//Returns single advert
+router.get("/:id", (req, res) => {
+    Advert.findById(req.params.id)
+        .then(result => {
+            if (!result)
+                res.status(200).json(result)
+            else
+                res.status(404).json({messgae: "Advert id " + req.params.id + " does not exsits"})
+        })
+        .catch( err => {
+            res.status(404).json({message: err})
+            console.log("\x1b[41m",err)
         })
 })
 router.post("/", checkAuth, (req,res) => {
@@ -64,12 +83,13 @@ router.post("/", checkAuth, (req,res) => {
         })
         .catch( (err) =>{
             res.status(400).json({message: err})
-            console.log(err)
+            console.log("\x1b[41m",err)
         })
         
 })
 
-router.patch("/id", checkAuth, (req,res) => {
+//Patches selected advert
+router.patch("/:id", checkAuth, (req,res) => {
     const id = req.params.id
     const advert = new Advert({
         title: req.body.title,
@@ -79,13 +99,18 @@ router.patch("/id", checkAuth, (req,res) => {
     Advert.findByIdAndUpdate(id, {title: advert.title, description: advert.description, imageUrl: advert.imageUrl})
         .then(response => {
             res.status(204).json({
-                message: "Advert id " + id + " has been updatet successfully",
+                message: "Advert id " + id + " has been updated successfully",
                 info: response
             })
         })
+        .catch( (err) =>{
+            res.status(400).json({message: err})
+            console.log("\x1b[41m",err)
+        })
 })
 
-router.delete("/id", checkAuth, (req, res) =>{
+//Deletes advert
+router.delete("/:id", checkAuth, (req, res) =>{
     const id = req.params.id
     Advert.findByIdAndDelete(id)
         .then(response => {
@@ -94,7 +119,10 @@ router.delete("/id", checkAuth, (req, res) =>{
                 info: response
             })
         })
-        .catch((err) => res.status(500).json({error: err}))
+        .catch( (err) =>{
+            res.status(500).json({message: err})
+            console.log("\x1b[41m",err)
+        })
 })
 
 module.exports = router
