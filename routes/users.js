@@ -4,7 +4,6 @@ const mongoose = require("mongoose")
 const bcrypt = require("bcrypt")
 const jwt = require("jsonwebtoken");
 const checkAuth = require("../middleware/AuthCheck")
-const authInfo = require("../middleware/AuthInfo")
 
 const User = require("../models/User")
 
@@ -32,7 +31,7 @@ router.post("/register", (req, res) => {
 })
 
 router.delete("/:id", checkAuth, (req, res) => {
-    console.log(req.decoded.email + " in delete")
+    //console.log(req.decoded.email + " in delete")
     const id = req.params.id
     User.findById(id)
         .then(result => {

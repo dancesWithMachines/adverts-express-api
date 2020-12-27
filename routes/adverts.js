@@ -2,7 +2,6 @@ const express = require("express")
 const mongoose = require("mongoose")
 const Advert = require("../models/Advert")
 const checkAuth = require("../middleware/AuthCheck")
-const authInfo = require("../middleware/AuthInfo")
 const router = express.Router()
 const multer = require("multer")
 
@@ -47,7 +46,7 @@ router.get("/user/:owner", (req, res) => {
     console.log("\x1b[34m", req.params.owner)
     Advert.find({owner: req.params.owner})
         .then(result => {
-            if (!result)
+            if (result != null)
                 res.status(200).json(result)
             else
                 res.status(404).json({message: "Did not find any adverts"})
@@ -62,7 +61,7 @@ router.get("/user/:owner", (req, res) => {
 router.get("/:id", (req, res) => {
     Advert.findById(req.params.id)
         .then(result => {
-            if (!result)
+            if (result != null)
                 res.status(200).json(result)
             else
                 res.status(404).json({messgae: "Advert id " + req.params.id + " does not exsits"})
@@ -74,13 +73,17 @@ router.get("/:id", (req, res) => {
 })
 
 //Adds advert
-router.post("/", checkAuth, (req,res) => {
+router.post("/", upload.single("advertImage"), checkAuth, (req,res) => {
+    var filepath = ""
+    try{
+        filepath = req.file.path
+    } catch {}
     const advert = new Advert({
         _id: new mongoose.Types.ObjectId,
-        owner: req.body.owner,
+        owner: req.decoded.email,
         title: req.body.title,
         description: req.body.description,
-        imageUrl: req.body.imageUrl
+        imageUrl: filepath
     })
     
     advert.save()
@@ -95,43 +98,71 @@ router.post("/", checkAuth, (req,res) => {
 })
 
 //Patches selected advert
-router.patch("/:id", checkAuth, (req,res) => {
+router.patch("/:id", upload.single("advertImage"), checkAuth, (req,res) => {
     const id = req.params.id
     const advert = new Advert({
         title: req.body.title,
         description: req.body.description,
-        imageUrl: req.body.imageUrl
+        imageUrl: req.file.path
     })
-    Advert.findByIdAndUpdate(id, {title: advert.title, description: advert.description, imageUrl: advert.imageUrl})
-        .then(response => {
-            res.status(204).json({
-                message: "Advert id " + id + " has been updated successfully",
-                info: response
-            })
-        })
-        .catch( (err) =>{
-            res.status(400).json({message: err})
-            console.log("\x1b[41m",err)
-        })
-})
-
-//Deletes advert
-router.delete("/:id", checkAuth, (req, res) =>{
-    const id = req.params.id
-    Advert.findByIdAndDelete(id)
-        .then(response => {
-            if (response != null)
-                res.status(200).json({
-                    message: "Product id " + id + " removed succesfully",
-                    info: response
-                })
-            else
-                res.status(404).json({message: "No such product"})
+    Advert.findById(id)
+        .then(result => {
+            if (result != null){
+                if (result.owner == req.decoded.email){
+                    Advert.findByIdAndUpdate(id, {title: advert.title, description: advert.description, imageUrl: advert.imageUrl})
+                        .then(response => {
+                            res.status(200).json({
+                                message: "Advert id " + id + " has been updated successfully",
+                                info: response
+                            })
+                        })
+                        .catch( (err) =>{
+                            res.status(400).json({message: err})
+                            console.log(err)
+                        })
+                } else
+                    res.status(403).json({message: "Unauthenticated"})               
+            } else 
+                res.status(404).json({message: "No such advert"})
         })
         .catch( (err) =>{
             res.status(500).json({message: err})
             console.log("\x1b[41m",err)
         })
+    
+})
+
+//Deletes advert
+router.delete("/:id", checkAuth, (req, res) =>{
+    const id = req.params.id
+    Advert.findById(id)
+        .then(result => {
+            if (result != null){
+                if (result.owner == req.decoded.email){
+                    Advert.findByIdAndDelete(id)
+                        .then(response => {
+                            if (response != null)
+                                res.status(200).json({
+                                    message: "Product id " + id + " removed succesfully",
+                                    info: response
+                                })
+                            else
+                                res.status(404).json({message: "No such product"})
+                        })
+                        .catch( (err) =>{
+                            res.status(500).json({message: err})
+                            console.log("\x1b[41m",err)
+                        })
+                } else
+                    res.status(403).json({message: "Unauthenticated"})               
+            } else 
+                res.status(404).json({message: "No such advert"})
+        })
+        .catch( (err) =>{
+            res.status(500).json({message: err})
+            console.log("\x1b[41m",err)
+        })
+    
 })
 
 module.exports = router
