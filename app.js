@@ -2,6 +2,7 @@ const express = require("express")
 const app = express();
 const mongoose = require("mongoose")
 const morgan = require("morgan")
+var path = require('path');
 require("dotenv/config")
 
 //IMPORTS
@@ -16,6 +17,10 @@ app.use(morgan("combined"))
 app.use("/adverts", advertsRoute)
 app.use("/users", usersRoute)
 app.use("/uploads",express.static("uploads"))
+
+app.get('/', function(req, res) {
+    res.sendFile(path.join(__dirname + '/html/index.html'));
+});
 
 app.use((req, res, next) => {
     const error = new Error("Did not found")
