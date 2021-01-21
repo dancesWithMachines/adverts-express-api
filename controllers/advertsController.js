@@ -1,3 +1,4 @@
+const e = require("cors")
 const mongoose = require("mongoose")
 const Advert = require("../models/Advert")
 
@@ -16,32 +17,26 @@ exports.getAllAdverts =(req,res) => {
 
 //Returns user's adverts
 exports.getUserAdverts = (req, res) => {
-    console.log("\x1b[34m", req.params.owner)
     Advert.find({owner: req.params.owner})
         .then(result => {
-            if (result != null)
+            if (result.length > 0)
                 res.status(200).json(result)
-            else
-                res.status(404).json({message: "Did not find any adverts"})
+            else 
+                res.status(204).json({message: err})
         })
         .catch( err => {
             res.status(204).json({message: err})
-            console.log(err)
         })
 }
 
 //Returns single advert
 exports.getAdvertById = (req, res) => {
-    Advert.findById(req.params.id)
+    Advert.find({_id: req.params.id})
         .then(result => {
-            if (result != null)
-                res.status(200).json(result)
-            else
-                res.status(404).json({messgae: "Advert id " + req.params.id + " does not exsits"})
+            res.status(200).json(result)
         })
         .catch( err => {
-            res.status(404).json({message: err})
-            console.log("\x1b[41m",err)
+            res.status(204).json({message: err})
         })
 }
 
@@ -73,10 +68,14 @@ exports.addAdvert = (req,res) => {
 //Patches selected advert
 exports.patchAdvert = (req,res) => {
     const id = req.params.id
+    var filepath = ""
+    try{
+        filepath = req.file.path
+    } catch {}
     const advert = new Advert({
         title: req.body.title,
         description: req.body.description,
-        imageUrl: req.file.path
+        imageUrl: filepath
     })
     Advert.findById(id)
         .then(result => {

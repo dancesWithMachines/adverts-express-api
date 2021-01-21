@@ -3,6 +3,7 @@ const app = express();
 const mongoose = require("mongoose")
 const morgan = require("morgan")
 var path = require('path');
+var cors = require('cors')
 require("dotenv/config")
 
 //IMPORTS
@@ -12,7 +13,8 @@ const usersRoute = require("./routes/users")
 //MIDDLEWARE
 app.use(express.urlencoded({ extended: true }));// Using body parser build into express
 app.use(express.json());
-app.use(morgan("combined"))                        
+app.use(morgan("combined"))
+app.use(cors())                        
 
 app.use("/adverts", advertsRoute)
 app.use("/users", usersRoute)
@@ -33,7 +35,9 @@ app.use((error, req, res ,next) => {
         error : {
             message: error.message
         }
+        
     })
+    console.log("\x1b[31m",error)
 })
 
 //ROUTES
