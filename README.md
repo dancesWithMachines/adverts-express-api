@@ -1,6 +1,9 @@
 # Adverts-Express-api
 Adverts-Express-api is an api written in Express as a part of completing the course.
 
+The app is a backend for ReactJs application that was allso prepaired to complete the course.
+You can check it out [here.](https://github.com/martyna-w/Adverts-React)
+
 ## Table of contents
 * [What does it do](#what-does-it-do)
 * [Main features](#main-features)
